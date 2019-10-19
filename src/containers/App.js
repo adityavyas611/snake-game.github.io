@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
-import Snake from './Snake';
-import Food from './Food';
-import Score from './Score';
+import Snake from '../components/Snake';
+import Food from '../components/Food';
+import Score from '../components/Score';
 
 let genRandCoords = () => {
 
@@ -14,26 +14,24 @@ let genRandCoords = () => {
   return [x,y];
 }
 
+let movement;
+
 class App extends Component {
 
   state = {
     food : genRandCoords(),
-    speed : 150,
+    speed : 120,
     score : 0,
     direction : 'RIGHT',
     snakeCharacter: [
       [50,40],
       [52,40]   
-    ]
-  }
-
-  componentDidMount() {
-    setInterval(this.moveSnake, this.state.speed);
-    document.onkeydown = this.onkeydown;
-    
+    ],
+    startSnakeGame: false
   }
 
   componentDidUpdate(){
+
     this.checkSnakeBorder();
     this.snakeCollapse();
     this.snakeEat();
@@ -62,6 +60,15 @@ onkeydown = (e) => {
      }
   }
 
+  startGame = () => {
+
+    movement = setInterval(this.moveSnake, this.state.speed);
+    document.onkeydown = this.onkeydown;
+    this.setState({
+        startSnakeGame: true
+    });
+  }
+
   moveSnake = () => {
     
     let snake = [...this.state.snakeCharacter];
@@ -85,12 +92,12 @@ onkeydown = (e) => {
         break;
     }
     snake.push(head);
+    console.log(snake);
     snake.shift();
     
     this.setState({
       snakeCharacter : snake
     })
-    console.log(`sanke :${snake}, H:${head}`)
   }
 
   checkSnakeBorder() {
@@ -102,7 +109,8 @@ onkeydown = (e) => {
   }
 
   GameOver(){
-    alert(`Game Over!!!`);
+    alert(`Game Over!!! Score is ${this.state.score}`);
+    clearInterval(movement);
     this.setState({
       food : genRandCoords(),
       score : 0,
@@ -111,7 +119,8 @@ onkeydown = (e) => {
       snakeCharacter: [
       [50,40],
       [52,42]
-    ]
+    ],
+    startSnakeGame: false,
     }
     )
   }
@@ -132,42 +141,33 @@ onkeydown = (e) => {
     let food = this.state.food;
     if(head[0] === food[0] && head[1] === food[1]){
       this.makeSnakeLarge();
-      this.countScore();
       this.setState({
         food: genRandCoords(),
+        score: this.state.score + 10
       });
     }
   }
 
   makeSnakeLarge() {
-    console.log(`snk:${[...this.state.snakeCharacter]}`)
     let largeSnake = [...this.state.snakeCharacter];
-     console.log(`aa ${largeSnake.unshift([])}`)
-
-     //  let newl=largeSnake.unshift([])
-    console.log(`qq ${largeSnake}`)
+    largeSnake.unshift([]);
     this.setState({
       snakeCharacter: largeSnake     
     });
   }
 
-  countScore(){
-    let newScore = this.state.snakeCharacter.length * 10 - 10;
-    this.setState({
-      score : newScore
-    })
-  }
-
 
   render (){
   return (
-    <div> 
+    (this.state.startSnakeGame)
+    ? <div> 
       <Score score = {this.state.score}/>
     <div className = 'game-ground'>
       <Snake snakeChars = {this.state.snakeCharacter} />
       <Food food = {this.state.food} />
     </div>
     </div>
+    : <button onClick={this.startGame}>Start Game</button>
   );
 }
 }
